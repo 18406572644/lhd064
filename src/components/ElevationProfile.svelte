@@ -1,24 +1,31 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import type { MarkerData } from '@/types';
-  import { getElevationProfile, type ElevationProfile, type ElevationPoint } from '@/services/elevation.service';
+  import { getElevationProfile, type ElevationProfile as ElevationProfileData, type ElevationPoint } from '@/services/elevation.service';
   import { formatDistance } from '@/utils/distance';
   import { showToast } from '@/stores/ui.store';
 
   export let markers: MarkerData[];
 
-  let profile: ElevationProfile | null = null;
+  let profile: ElevationProfileData | null = null;
   let loading = false;
   let error = '';
   let hoveredPoint: ElevationPoint | null = null;
   let svgWidth = 300;
   let svgContainer: HTMLElement;
+  let lastMarkersHash = '';
 
   const margin = { top: 28, right: 16, bottom: 36, left: 50 };
   const height = 220;
 
   $: markerCount = markers.length;
   $: canFetch = markerCount >= 2;
+
+  $: markersHash = markers.map(m => `${m.lat.toFixed(6)},${m.lng.toFixed(6)}`).join('|');
+
+  $: if (canFetch && markersHash !== lastMarkersHash && !loading) {
+    fetchProfile();
+  }
 
   $: plotWidth = svgWidth - margin.left - margin.right;
   $: plotHeight = height - margin.top - margin.bottom;
@@ -32,6 +39,7 @@
   $: yRange = yMax - yMin || 1;
 
   $: totalDist = profile ? profile.totalDistance : 0;
+  $: isSimulated = profile?.isSimulated ?? false;
 
   $: markerPoints = profile
     ? profile.points.filter(p => p.isMarker)
@@ -95,18 +103,29 @@
     return `${Math.round(km * 1000)}m`;
   }
 
-  async function fetchProfile() {
+  async function fetchProfile(forceRefresh = false) {
     if (!canFetch) return;
     loading = true;
     error = '';
+    profile = null;
+    hoveredPoint = null;
     try {
       profile = await getElevationProfile(markers, 20);
+      lastMarkersHash = markersHash;
+      if (profile.isSimulated) {
+        showToast('当前使用模拟海拔数据，API 请求失败', 'info');
+      }
     } catch (e: any) {
       error = e.message || '获取海拔数据失败';
       showToast('海拔数据获取失败', 'error');
     } finally {
       loading = false;
     }
+  }
+
+  function retryFetch() {
+    lastMarkersHash = '';
+    fetchProfile(true);
   }
 
   function onMouseMove(e: MouseEvent) {
@@ -132,9 +151,7 @@
   }
 
   onMount(() => {
-    if (canFetch) {
-      fetchProfile();
-    }
+    lastMarkersHash = markersHash;
 
     const ro = new ResizeObserver((entries) => {
       for (const entry of entries) {
@@ -146,10 +163,6 @@
     }
     return () => ro.disconnect();
   });
-
-  $: if (canFetch && !loading && !profile && !error) {
-    fetchProfile();
-  }
 </script>
 
 <style lang="scss">
@@ -212,6 +225,51 @@
         background: $vintage-red;
         color: #FFF;
         border-color: $vintage-red;
+      }
+    }
+  }
+
+  .simulated-warning {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    background: linear-gradient(135deg, rgba(212, 160, 60, 0.12), rgba(212, 160, 60, 0.06));
+    border: 1.5px solid rgba(212, 160, 60, 0.4);
+    border-radius: 6px;
+    margin-bottom: 4px;
+
+    .warn-icon {
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+
+    span {
+      flex: 1;
+      font-family: $font-body;
+      font-size: 12px;
+      color: rgba(62, 44, 28, 0.75);
+      line-height: 1.5;
+    }
+
+    .warn-retry {
+      flex-shrink: 0;
+      padding: 4px 12px;
+      border: 1.5px solid rgba(44, 95, 143, 0.4);
+      border-radius: 4px;
+      background: rgba(255, 250, 235, 0.9);
+      font-family: $font-display;
+      font-size: 11px;
+      font-weight: 600;
+      color: $highway-blue;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+
+      &:hover {
+        background: $highway-blue;
+        color: #FFF;
+        border-color: $highway-blue;
       }
     }
   }
@@ -388,9 +446,16 @@
   {:else if error}
     <div class="error-msg">
       <div>⚠️ {error}</div>
-      <button class="retry-btn" on:click={fetchProfile}>重新获取</button>
+      <button class="retry-btn" on:click={retryFetch}>重新获取</button>
     </div>
   {:else if profile && profile.points.length > 0}
+    {#if isSimulated}
+      <div class="simulated-warning">
+        <span class="warn-icon">⚠️</span>
+        <span>由于 API 服务暂时不可用，当前显示的是基于坐标生成的模拟海拔数据。</span>
+        <button class="warn-retry" on:click={retryFetch}>重新获取</button>
+      </div>
+    {/if}
     <div class="chart-container" bind:this={svgContainer}>
       {#if hoveredPoint}
         <div class="tooltip">
@@ -400,6 +465,8 @@
       {/if}
       <svg
         class="chart-svg"
+        role="img"
+        aria-label="海拔剖面图，X轴为累计里程，Y轴为海拔高度"
         viewBox="0 0 {svgWidth} {height}"
         on:mousemove={onMouseMove}
         on:mouseleave={onMouseLeave}
