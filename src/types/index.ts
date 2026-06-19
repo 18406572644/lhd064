@@ -71,6 +71,30 @@ export interface CachedTile {
   url: string;
 }
 
+export interface CommunityRoute {
+  id: string;
+  routeId: string;
+  routeName: string;
+  author: string;
+  description: string;
+  rating: 1 | 2 | 3 | 4 | 5;
+  markers: MarkerData[];
+  totalDistance: number;
+  totalDuration: number;
+  fuelCost: number;
+  publishedAt: number;
+  clonedCount: number;
+  thumbnail?: string;
+}
+
+export interface CommunityPackage {
+  version: string;
+  exportedAt: number;
+  routes: CommunityRoute[];
+}
+
+export type PlazaSortKey = 'rating' | 'distance' | 'markers';
+
 export interface TileResponse {
   success: boolean;
   tileUrl: string;

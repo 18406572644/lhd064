@@ -8,12 +8,16 @@
   import PreviewModal from './components/PreviewModal.svelte';
   import ExportModal from './components/ExportModal.svelte';
   import SettingsModal from './components/SettingsModal.svelte';
+  import RoutePlaza from './components/RoutePlaza.svelte';
+  import PublishToPlaza from './components/PublishToPlaza.svelte';
 
   import {
     showRouteLibrary,
     showPreview,
     showExport,
     showSettings,
+    showPlaza,
+    showPublishPlaza,
     toast,
     activeTool
   } from './stores/ui.store';
@@ -93,6 +97,9 @@
   {#if $showSettings}
     <SettingsModal />
   {/if}
+
+  <RoutePlaza />
+  <PublishToPlaza />
 
   <!-- ========== Toast 提示 ========== -->
   {#if $toast}

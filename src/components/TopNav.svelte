@@ -10,6 +10,8 @@
     showSettings,
     showPreview,
     showExport,
+    showPlaza,
+    showPublishPlaza,
     showToast
   } from '@/stores/ui.store';
   import { StorageService } from '@/services/storage.service';
@@ -82,6 +84,18 @@
   function handleExport() {
     if (markerCount < 2) return;
     showExport.update(v => !v);
+  }
+
+  function handlePlaza() {
+    showPlaza.set(true);
+  }
+
+  function handlePublishToPlaza() {
+    if (markerCount < 2) {
+      showToast('至少需要2个标记点才能发布到广场', 'info');
+      return;
+    }
+    showPublishPlaza.set(true);
   }
 
   function handleRouteNameBlur() {
@@ -165,6 +179,25 @@
       tilt={0.8}
       disabled={markerCount < 2}
       on:click={handleExport}
+    />
+    <RoadSign
+      text="路线广场"
+      icon="🏘️"
+      color="#6B3FA0"
+      textColor="#F5EFE0"
+      size="sm"
+      tilt={-1.2}
+      on:click={handlePlaza}
+    />
+    <RoadSign
+      text="发布到广场"
+      icon="🚀"
+      color="#C4782A"
+      textColor="#F5EFE0"
+      size="sm"
+      tilt={0.6}
+      disabled={markerCount < 2}
+      on:click={handlePublishToPlaza}
     />
   </div>
 
