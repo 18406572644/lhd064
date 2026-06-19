@@ -1,0 +1,167 @@
+@use 'variables' as *;
+
+@mixin paper-texture {
+  background-color: $sand;
+  background-image:
+    radial-gradient(circle at 20% 30%, rgba(62, 44, 28, 0.03) 0%, transparent 50%),
+    radial-gradient(circle at 80% 70%, rgba(62, 44, 28, 0.04) 0%, transparent 50%),
+    radial-gradient(circle at 50% 50%, rgba(212, 160, 60, 0.02) 0%, transparent 70%);
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+  }
+}
+
+@mixin vintage-road-sign($bg-color, $text-color) {
+  background: $bg-color;
+  color: $text-color;
+  border: 3px solid $text-color;
+  border-radius: 4px;
+  padding: 10px 20px;
+  font-family: $font-display;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  position: relative;
+  box-shadow:
+    0 4px 0 darken($bg-color, 15%),
+    0 6px 12px rgba(26, 20, 16, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  transform: translateY(0);
+  transition: all 0.2s ease;
+  cursor: pointer;
+
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    background: $text-color;
+    border-radius: 50%;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.3);
+  }
+
+  &::before {
+    top: 6px;
+    left: 10px;
+  }
+
+  &::after {
+    top: 6px;
+    right: 10px;
+  }
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow:
+      0 6px 0 darken($bg-color, 15%),
+      0 8px 16px rgba(26, 20, 16, 0.35),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  }
+
+  &:active {
+    transform: translateY(2px);
+    box-shadow:
+      0 2px 0 darken($bg-color, 15%),
+      0 3px 6px rgba(26, 20, 16, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  }
+}
+
+@mixin scroll-panel {
+  background:
+    linear-gradient(135deg, rgba(245, 239, 224, 1) 0%, rgba(232, 220, 196, 1) 100%);
+  border: none;
+  position: relative;
+  padding: 30px;
+  border-radius: 2px;
+  box-shadow:
+    0 2px 4px rgba(62, 44, 28, 0.15),
+    inset 0 0 60px rgba(212, 160, 60, 0.08);
+
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    left: 15px;
+    right: 15px;
+    height: 2px;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      $deep-brown 10%,
+      $deep-brown 90%,
+      transparent 100%
+    );
+    opacity: 0.3;
+  }
+
+  &::before {
+    top: 10px;
+  }
+
+  &::after {
+    bottom: 10px;
+  }
+
+  .scroll-corner {
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    border: 2px solid $warm-yellow;
+    opacity: 0.5;
+
+    &.tl {
+      top: 8px;
+      left: 8px;
+      border-right: none;
+      border-bottom: none;
+    }
+
+    &.tr {
+      top: 8px;
+      right: 8px;
+      border-left: none;
+      border-bottom: none;
+    }
+
+    &.bl {
+      bottom: 8px;
+      left: 8px;
+      border-right: none;
+      border-top: none;
+    }
+
+    &.br {
+      bottom: 8px;
+      right: 8px;
+      border-left: none;
+      border-top: none;
+    }
+  }
+}
+
+@mixin vintage-shadow {
+  box-shadow:
+    2px 2px 0 rgba(62, 44, 28, 0.15),
+    4px 4px 0 rgba(62, 44, 28, 0.1),
+    6px 6px 12px rgba(26, 20, 16, 0.2);
+}
+
+@mixin aged-filter {
+  filter:
+    sepia(0.2)
+    contrast(1.05)
+    saturate(0.85)
+    brightness(0.98);
+}
