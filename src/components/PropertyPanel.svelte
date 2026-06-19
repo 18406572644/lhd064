@@ -40,18 +40,25 @@
 
   let previewPhotoUrl: string | null = null;
 
-  $: selectedMarker = derived(
+  const selectedMarker = derived(
     [currentRoute, selectedMarkerId],
     ([$route, $id]) => $route.markers.find(m => m.id === $id) || null
   );
 
+  let lastSelectedMarkerId: string | null = null;
+
   $: {
     const m = $selectedMarker;
     if (m) {
-      editName = m.name;
-      editNote = m.note;
-      editArrivalTime = m.arrivalTime || '';
-      editStayDuration = m.stayDuration != null ? String(m.stayDuration) : '';
+      if (m.id !== lastSelectedMarkerId) {
+        lastSelectedMarkerId = m.id;
+        editName = m.name;
+        editNote = m.note;
+        editArrivalTime = m.arrivalTime || '';
+        editStayDuration = m.stayDuration != null ? String(m.stayDuration) : '';
+      }
+    } else {
+      lastSelectedMarkerId = null;
     }
   }
 

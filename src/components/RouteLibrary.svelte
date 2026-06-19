@@ -26,9 +26,37 @@
   let loading = true;
   let searchQuery = '';
   let activeFilter: FilterType = 'all';
-  let favorites = new Set<string>();
+  let favoriteIds: string[] = [];
   let renamingId: string | null = null;
   let renameInput = '';
+
+  const FAV_STORAGE_KEY = 'vintage_route_favorites_v1';
+
+  function loadFavorites() {
+    try {
+      const raw = localStorage.getItem(FAV_STORAGE_KEY);
+      if (raw) {
+        const arr = JSON.parse(raw);
+        if (Array.isArray(arr)) {
+          favoriteIds = arr.filter((x) => typeof x === 'string');
+        }
+      }
+    } catch (e) {
+      favoriteIds = [];
+    }
+  }
+
+  function saveFavorites() {
+    try {
+      localStorage.setItem(FAV_STORAGE_KEY, JSON.stringify(favoriteIds));
+    } catch (e) {
+      console.warn('保存收藏失败', e);
+    }
+  }
+
+  function isFavorite(id: string): boolean {
+    return favoriteIds.includes(id);
+  }
 
   $: filteredRoutes = (() => {
     let list = routes;
@@ -36,7 +64,7 @@
       const cutoff = Date.now() - 7 * 24 * 60 * 60 * 1000;
       list = list.filter(r => r.updatedAt >= cutoff);
     } else if (activeFilter === 'favorites') {
-      list = list.filter(r => favorites.has(r.id));
+      list = list.filter(r => favoriteIds.includes(r.id));
     }
     const q = searchQuery.trim().toLowerCase();
     if (q) {
@@ -46,6 +74,7 @@
   })();
 
   onMount(async () => {
+    loadFavorites();
     loading = true;
     try {
       routes = await MockAPI.loadRoutes();
@@ -102,7 +131,8 @@
     const success = await MockAPI.deleteRoute(route.id);
     if (success) {
       routes = routes.filter(r => r.id !== route.id);
-      favorites.delete(route.id);
+      favoriteIds = favoriteIds.filter(id => id !== route.id);
+      saveFavorites();
       showToast('路线已删除', 'info');
     } else {
       showToast('删除失败', 'error');
@@ -144,15 +174,15 @@
   }
 
   function toggleFavorite(id: string) {
-    const next = new Set(favorites);
-    if (next.has(id)) {
-      next.delete(id);
+    const idx = favoriteIds.indexOf(id);
+    if (idx >= 0) {
+      favoriteIds = favoriteIds.filter(x => x !== id);
       showToast('已取消收藏', 'info');
     } else {
-      next.add(id);
+      favoriteIds = [...favoriteIds, id];
       showToast('已加入收藏', 'success');
     }
-    favorites = next;
+    saveFavorites();
   }
 
   async function exportAll() {
@@ -732,9 +762,9 @@
                   <button
                     class="favorite-btn"
                     on:click={() => toggleFavorite(route.id)}
-                    title={favorites.has(route.id) ? '取消收藏' : '收藏'}
+                    title={isFavorite(route.id) ? '取消收藏' : '收藏'}
                   >
-                    {favorites.has(route.id) ? '⭐' : '☆'}
+                    {isFavorite(route.id) ? '⭐' : '☆'}
                   </button>
                   {#if route.thumbnail}
                     <img src={route.thumbnail} alt={route.name} />

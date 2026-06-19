@@ -35,7 +35,6 @@
   let presetRoutes: RouteData[] = [];
   let selectedPresetId: string = '';
   let loadingPresets = false;
-  let localSettings: { tileStyle: 'vintage' | 'satellite' | 'standard'; showCompass: boolean } = { tileStyle: 'vintage', showCompass: true };
 
   $: markerCount = $currentRoute.markers.length;
   $: canOptimize = markerCount >= 3;
@@ -54,10 +53,6 @@
     } finally {
       loadingPresets = false;
     }
-    $appSettings;
-    appSettings.subscribe(s => {
-      localSettings = { tileStyle: s.tileStyle, showCompass: s.showCompass };
-    });
   });
 
   function selectTool(toolId: ToolType) {
@@ -647,7 +642,7 @@
       <div class="tile-options">
         {#each tileStyles as style}
           <label
-            class="tile-option {localSettings.tileStyle === style.id ? 'active' : ''}"
+            class="tile-option {$appSettings.tileStyle === style.id ? 'active' : ''}"
             on:click={() => updateTileStyle(style.id)}
           >
             <span class="radio-dot"></span>
@@ -658,7 +653,7 @@
       <div class="toggle-row">
         <span>显示指北针</span>
         <div
-          class="switch {localSettings.showCompass ? 'on' : ''}"
+          class="switch {$appSettings.showCompass ? 'on' : ''}"
           on:click={toggleCompass}
         ></div>
       </div>

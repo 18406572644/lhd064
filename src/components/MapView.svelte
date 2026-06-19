@@ -25,6 +25,27 @@
   let deleteMenuEl: HTMLDivElement | null = null;
   let hoverCoords: { lat: number; lng: number } | null = null;
   let isOnline = typeof navigator !== 'undefined' ? navigator.onLine : true;
+  let currentTileLayer: import('leaflet').TileLayer | null = null;
+  let currentTileKey: string = '';
+  let mapContainerEl: HTMLDivElement | null = null;
+
+  $: activeTileStyle = $appSettings.tileStyle;
+
+  $: if (map && L) {
+    const style = $appSettings.tileStyle;
+    if (style && style !== currentTileKey) {
+      const cfg = TILE_CONFIGS[style] || TILE_CONFIGS.vintage;
+      if (currentTileLayer) { map.removeLayer(currentTileLayer); }
+      currentTileLayer = L.tileLayer(cfg.url, {
+        attribution: cfg.attribution,
+        subdomains: cfg.subdomains,
+        maxZoom: 19,
+        className: cfg.className
+      });
+      currentTileLayer.addTo(map);
+      currentTileKey = style;
+    }
+  }
 
   const markerRefs = new Map<string, import('leaflet').Marker>();
   let deleteMenu = { visible: false, x: 0, y: 0, markerId: '' as string };
@@ -312,6 +333,26 @@
     dispatchHoverEvent();
   }
 
+  const TILE_CONFIGS: Record<string, { url: string; className: string; attribution: string; subdomains?: string }> = {
+    vintage: {
+      url: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+      className: 'vintage-tile-layer',
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+      subdomains: 'abcd'
+    },
+    satellite: {
+      url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+      className: 'satellite-tile-layer',
+      attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+    },
+    standard: {
+      url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+      className: 'standard-tile-layer',
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      subdomains: 'abc'
+    }
+  };
+
   let unsubscribeList: (() => void)[] = [];
 
   onMount(async () => {
@@ -331,16 +372,6 @@
     });
 
     L!.control.zoom({ position: 'topright' }).addTo(map);
-
-    const tileLayer = L!.tileLayer(
-      'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
-      {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
-        subdomains: 'abcd',
-        maxZoom: 19,
-        className: 'vintage-tile-layer'
-      }
-    ).addTo(map);
 
     markersLayer = L!.layerGroup().addTo(map);
     distanceLabelsLayer = L!.layerGroup().addTo(map);
@@ -425,7 +456,14 @@
 </script>
 
 <div class="map-wrapper">
-  <div id="vintage-map" class="vintage-map-container"></div>
+  <div
+    id="vintage-map"
+    class="vintage-map-container"
+    class:style-vintage={activeTileStyle === 'vintage'}
+    class:style-satellite={activeTileStyle === 'satellite'}
+    class:style-standard={activeTileStyle === 'standard'}
+    bind:this={mapContainerEl}
+  ></div>
 
   {#if deleteMenu.visible}
     <div
@@ -455,11 +493,31 @@
   .vintage-map-container {
     width: 100%;
     height: 100%;
+    transition: filter 0.3s ease;
+  }
+
+  .vintage-map-container.style-vintage {
     filter: sepia(0.25) saturate(1.1) contrast(1.05);
+  }
+
+  .vintage-map-container.style-satellite {
+    filter: saturate(1.15) contrast(1.08) brightness(0.98);
+  }
+
+  .vintage-map-container.style-standard {
+    filter: none;
   }
 
   .vintage-map-container :global(.vintage-tile-layer) {
     filter: sepia(0.15) saturate(1.05) contrast(1.02) brightness(0.98);
+  }
+
+  .vintage-map-container :global(.satellite-tile-layer) {
+    filter: saturate(1.1) contrast(1.05);
+  }
+
+  .vintage-map-container :global(.standard-tile-layer) {
+    filter: none;
   }
 
   .vintage-map-container :global(.leaflet-container) {
