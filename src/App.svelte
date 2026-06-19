@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { onMount, onDestroy } from 'svelte';
   import TopNav from './components/TopNav.svelte';
   import ToolPanel from './components/ToolPanel.svelte';
   import MapView from './components/MapView.svelte';
@@ -10,6 +11,7 @@
   import SettingsModal from './components/SettingsModal.svelte';
   import RoutePlaza from './components/RoutePlaza.svelte';
   import PublishToPlaza from './components/PublishToPlaza.svelte';
+  import VersionHistoryModal from './components/VersionHistoryModal.svelte';
 
   import {
     showRouteLibrary,
@@ -18,11 +20,32 @@
     showSettings,
     showPlaza,
     showPublishPlaza,
+    showVersionHistory,
     toast,
     activeTool
   } from './stores/ui.store';
 
+  import { startAutosave, stopAutosave, resetLastSavedHash } from './services/autosave.service';
+  import { currentRoute } from './stores/route.store';
+
   import type { MarkerType } from './types';
+
+  let prevRouteId = '';
+
+  $: {
+    if ($currentRoute && $currentRoute.id !== prevRouteId) {
+      prevRouteId = $currentRoute.id;
+      resetLastSavedHash();
+    }
+  }
+
+  onMount(() => {
+    startAutosave();
+  });
+
+  onDestroy(() => {
+    stopAutosave();
+  });
 
   $: cursorClass =
     $activeTool !== 'select' && $activeTool !== 'route' ? 'cursor-crosshair' : '';
@@ -96,6 +119,10 @@
 
   {#if $showSettings}
     <SettingsModal />
+  {/if}
+
+  {#if $showVersionHistory}
+    <VersionHistoryModal />
   {/if}
 
   <RoutePlaza />

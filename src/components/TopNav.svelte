@@ -12,6 +12,7 @@
     showExport,
     showPlaza,
     showPublishPlaza,
+    showVersionHistory,
     showToast
   } from '@/stores/ui.store';
   import { StorageService } from '@/services/storage.service';
@@ -98,6 +99,10 @@
     showPublishPlaza.set(true);
   }
 
+  function handleVersionHistory() {
+    showVersionHistory.set(true);
+  }
+
   function handleRouteNameBlur() {
     if (routeName.trim() === '') {
       routeName = '新路线';
@@ -150,6 +155,15 @@
       size="sm"
       tilt={-0.8}
       on:click={handleRouteLibrary}
+    />
+    <RoadSign
+      text="历史版本"
+      icon="🕘"
+      color="#8B5A2B"
+      textColor="#F5EFE0"
+      size="sm"
+      tilt={0.5}
+      on:click={handleVersionHistory}
     />
     <RoadSign
       text="车辆设置"

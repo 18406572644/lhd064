@@ -15,6 +15,7 @@ export const showExport = writable<boolean>(false);
 export const showSettings = writable<boolean>(false);
 export const showPlaza = writable<boolean>(false);
 export const showPublishPlaza = writable<boolean>(false);
+export const showVersionHistory = writable<boolean>(false);
 export const mapReady = writable<boolean>(false);
 export const mapInstance = writable<any | null>(null);
 export const toast = writable<ToastData | null>(null);

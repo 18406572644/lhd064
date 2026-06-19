@@ -71,6 +71,15 @@ export interface CachedTile {
   url: string;
 }
 
+export interface DraftRouteSnapshot {
+  id: string;
+  routeId: string;
+  routeName: string;
+  markers: MarkerData[];
+  totalDistance: number;
+  savedAt: number;
+}
+
 export interface CommunityRoute {
   id: string;
   routeId: string;
