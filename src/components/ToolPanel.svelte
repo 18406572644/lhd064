@@ -641,13 +641,14 @@
       <div class="section-title">地图图层</div>
       <div class="tile-options">
         {#each tileStyles as style}
-          <label
+          <div
+            role="button"
             class="tile-option {$appSettings.tileStyle === style.id ? 'active' : ''}"
-            on:click={() => updateTileStyle(style.id)}
+            on:click|stopPropagation|preventDefault={() => updateTileStyle(style.id)}
           >
             <span class="radio-dot"></span>
             <span>{style.label}</span>
-          </label>
+          </div>
         {/each}
       </div>
       <div class="toggle-row">

@@ -29,21 +29,36 @@
   let currentTileKey: string = '';
   let mapContainerEl: HTMLDivElement | null = null;
 
-  $: activeTileStyle = $appSettings.tileStyle;
-
   $: if (map && L) {
     const style = $appSettings.tileStyle;
     if (style && style !== currentTileKey) {
-      const cfg = TILE_CONFIGS[style] || TILE_CONFIGS.vintage;
-      if (currentTileLayer) { map.removeLayer(currentTileLayer); }
-      currentTileLayer = L.tileLayer(cfg.url, {
-        attribution: cfg.attribution,
-        subdomains: cfg.subdomains,
-        maxZoom: 19,
-        className: cfg.className
-      });
-      currentTileLayer.addTo(map);
-      currentTileKey = style;
+      try {
+        const cfg = TILE_CONFIGS[style] || TILE_CONFIGS.vintage;
+        if (cfg && cfg.url) {
+          if (map && L) {
+            map.eachLayer((layer) => {
+              try {
+                if (layer instanceof L.TileLayer) {
+                  map!.removeLayer(layer);
+                }
+              } catch {}
+            });
+          }
+          const newLayer = L.tileLayer(cfg.url, {
+            attribution: cfg.attribution || '',
+            subdomains: (cfg as any).subdomains,
+            maxZoom: 19,
+            className: cfg.className || ''
+          });
+          newLayer.addTo(map);
+          currentTileLayer = newLayer;
+          currentTileKey = style;
+        }
+      } catch (e) {
+        console.error('[tile switch error]', e);
+        currentTileKey = '';
+        currentTileLayer = null;
+      }
     }
   }
 
@@ -459,9 +474,9 @@
   <div
     id="vintage-map"
     class="vintage-map-container"
-    class:style-vintage={activeTileStyle === 'vintage'}
-    class:style-satellite={activeTileStyle === 'satellite'}
-    class:style-standard={activeTileStyle === 'standard'}
+    class:style-vintage={$appSettings.tileStyle === 'vintage'}
+    class:style-satellite={$appSettings.tileStyle === 'satellite'}
+    class:style-standard={$appSettings.tileStyle === 'standard'}
     bind:this={mapContainerEl}
   ></div>
 

@@ -58,8 +58,10 @@
     return favoriteIds.includes(id);
   }
 
-  $: filteredRoutes = (() => {
-    let list = routes;
+  let filteredRoutes: RouteData[] = [];
+
+  $: {
+    let list = routes.slice();
     if (activeFilter === 'recent') {
       const cutoff = Date.now() - 7 * 24 * 60 * 60 * 1000;
       list = list.filter(r => r.updatedAt >= cutoff);
@@ -70,8 +72,8 @@
     if (q) {
       list = list.filter(r => r.name.toLowerCase().includes(q));
     }
-    return list.sort((a, b) => b.updatedAt - a.updatedAt);
-  })();
+    filteredRoutes = list.sort((a, b) => b.updatedAt - a.updatedAt);
+  }
 
   onMount(async () => {
     loadFavorites();
