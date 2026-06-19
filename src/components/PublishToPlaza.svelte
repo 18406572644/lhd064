@@ -3,6 +3,7 @@
   import { currentRoute } from '@/stores/route.store';
   import { CommunityService } from '@/services/community.service';
   import { CommunityStorage } from '@/services/community-storage.service';
+  import { ROUTE_THEME_LABELS, ROUTE_THEME_ICONS, type RouteTheme } from '@/types';
   import { onMount } from 'svelte';
 
   let author = '';
@@ -10,10 +11,14 @@
   let rating: 1 | 2 | 3 | 4 | 5 = 3;
   let hoverRating = 0;
   let submitting = false;
+  let selectedThemes: RouteTheme[] = [];
+  let detectingThemes = false;
 
   $: markerCount = $currentRoute.markers.length;
   $: canPublish = markerCount >= 2 && author.trim().length > 0;
   $: routeName = $currentRoute.name;
+
+  const allThemes: RouteTheme[] = ['nature', 'culture', 'food', 'road_trip'];
 
   const ratingLabels: Record<number, string> = {
     1: '轻松休闲',
@@ -23,8 +28,42 @@
     5: '极限挑战'
   };
 
-  onMount(() => {
+  function toggleTheme(theme: RouteTheme) {
+    const idx = selectedThemes.indexOf(theme);
+    if (idx >= 0) {
+      selectedThemes.splice(idx, 1);
+    } else {
+      selectedThemes.push(theme);
+    }
+    selectedThemes = [...selectedThemes];
+  }
+
+  function isThemeSelected(theme: RouteTheme): boolean {
+    return selectedThemes.includes(theme);
+  }
+
+  async function detectThemes() {
+    detectingThemes = true;
+    try {
+      const detected = await CommunityService.autoDetectThemes($currentRoute);
+      selectedThemes = detected;
+      showToast(`已自动识别 ${detected.length} 个主题标签`, 'success');
+    } catch (e) {
+      showToast('自动识别失败', 'error');
+    } finally {
+      detectingThemes = false;
+    }
+  }
+
+  onMount(async () => {
     author = CommunityStorage.loadAuthorName();
+    if ($currentRoute.markers.length >= 2) {
+      try {
+        selectedThemes = await CommunityService.autoDetectThemes($currentRoute);
+      } catch (e) {
+        // ignore
+      }
+    }
   });
 
   function close() {
@@ -43,7 +82,7 @@
     if (!canPublish || submitting) return;
     submitting = true;
     try {
-      await CommunityService.publishToPlaza($currentRoute, author, description, rating);
+      await CommunityService.publishToPlaza($currentRoute, author, description, rating, selectedThemes);
       showToast('路线已发布到广场！', 'success');
       close();
     } catch (e: any) {
@@ -126,6 +165,34 @@
             </div>
             <span class="rating-label">{ratingLabels[hoverRating || rating]}</span>
           </div>
+        </div>
+
+        <div class="form-group">
+          <div class="label-row">
+            <label class="form-label">
+              <span class="label-icon">🏷️</span>
+              路线主题标签
+            </label>
+            <button class="detect-btn" on:click={detectThemes} disabled={detectingThemes}>
+              {detectingThemes ? '识别中...' : '✨ 智能识别'}
+            </button>
+          </div>
+          <div class="theme-grid">
+            {#each allThemes as theme}
+              <button
+                type="button"
+                class="theme-chip"
+                class:selected={isThemeSelected(theme)}
+                on:click={() => toggleTheme(theme)}
+              >
+                <span class="theme-icon">{ROUTE_THEME_ICONS[theme]}</span>
+                <span class="theme-label">{ROUTE_THEME_LABELS[theme]}</span>
+              </button>
+            {/each}
+          </div>
+          {#if selectedThemes.length === 0}
+            <span class="hint-text">请至少选择一个主题标签</span>
+          {/if}
         </div>
       </div>
 
@@ -377,6 +444,87 @@
     font-size: 13px;
     color: rgba(62, 44, 28, 0.7);
     font-style: italic;
+  }
+
+  .label-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+  }
+
+  .detect-btn {
+    padding: 4px 12px;
+    border: 1.5px solid rgba(44, 95, 143, 0.35);
+    border-radius: 16px;
+    background: rgba(44, 95, 143, 0.06);
+    color: $highway-blue;
+    font-family: $font-display;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover:not(:disabled) {
+      background: rgba(44, 95, 143, 0.12);
+      border-color: $highway-blue;
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+
+  .theme-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .theme-chip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 12px;
+    border: 1.5px solid rgba(139, 111, 71, 0.3);
+    border-radius: 8px;
+    background: #FBF5E6;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    .theme-icon {
+      font-size: 18px;
+    }
+
+    .theme-label {
+      font-family: $font-display;
+      font-size: 13px;
+      font-weight: 600;
+      color: $deep-brown;
+    }
+
+    &:hover {
+      border-color: rgba(212, 160, 60, 0.6);
+      background: rgba(255, 240, 180, 0.3);
+    }
+
+    &.selected {
+      border-color: $highway-blue;
+      background: rgba(44, 95, 143, 0.1);
+      box-shadow: 0 2px 6px rgba(44, 95, 143, 0.15);
+
+      .theme-label {
+        color: $highway-blue;
+      }
+    }
+  }
+
+  .hint-text {
+    font-family: $font-typewriter;
+    font-size: 11px;
+    color: rgba(62, 44, 28, 0.4);
+    margin-top: 4px;
   }
 
   .modal-footer {

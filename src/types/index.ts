@@ -1,5 +1,54 @@
 export type MarkerType = 'attraction' | 'restaurant' | 'hotel' | 'gas';
 
+export type RouteTheme = 'nature' | 'culture' | 'food' | 'road_trip';
+
+export type DistanceRange = 'all' | 'short' | 'medium' | 'long';
+
+export type MarkerCountRange = 'all' | 'few' | 'medium' | 'many';
+
+export type RatingFilter = 'all' | 3 | 4 | 5;
+
+export type DifficultyFilter = 'all' | 1 | 2 | 3 | 4 | 5;
+
+export interface PlazaFilter {
+  distance: DistanceRange;
+  markers: MarkerCountRange;
+  themes: RouteTheme[];
+  difficulty: DifficultyFilter;
+  minRating: RatingFilter;
+}
+
+export interface FavoriteRoute {
+  routeId: string;
+  customTags: string[];
+  favoritedAt: number;
+}
+
+export interface WatchLaterRoute {
+  routeId: string;
+  addedAt: number;
+}
+
+export interface UserPreference {
+  preferredThemes: RouteTheme[];
+  preferredMarkerTypes: MarkerType[];
+  preferredDistanceRanges: DistanceRange[];
+}
+
+export const ROUTE_THEME_LABELS: Record<RouteTheme, string> = {
+  nature: '自然',
+  culture: '人文',
+  food: '美食',
+  road_trip: '自驾穿越'
+};
+
+export const ROUTE_THEME_ICONS: Record<RouteTheme, string> = {
+  nature: '🌿',
+  culture: '🏛️',
+  food: '🍜',
+  road_trip: '🚗'
+};
+
 export interface MarkerData {
   id: string;
   type: MarkerType;
@@ -116,6 +165,7 @@ export interface CommunityRoute {
   publishedAt: number;
   clonedCount: number;
   thumbnail?: string;
+  themes: RouteTheme[];
 }
 
 export interface CommunityPackage {

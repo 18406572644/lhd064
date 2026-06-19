@@ -16,6 +16,7 @@ export const showSettings = writable<boolean>(false);
 export const showPlaza = writable<boolean>(false);
 export const showPublishPlaza = writable<boolean>(false);
 export const showVersionHistory = writable<boolean>(false);
+export const showRouteDetail = writable<string | null>(null);
 export const mapReady = writable<boolean>(false);
 export const mapInstance = writable<any | null>(null);
 export const toast = writable<ToastData | null>(null);
@@ -32,4 +33,12 @@ export function showToast(msg: string, type: 'info' | 'success' | 'error' = 'inf
     toast.set(null);
     toastTimer = null;
   }, 3000);
+}
+
+export function openRouteDetail(routeId: string) {
+  showRouteDetail.set(routeId);
+}
+
+export function closeRouteDetail() {
+  showRouteDetail.set(null);
 }

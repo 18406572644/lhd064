@@ -13,6 +13,7 @@
   import RoutePlaza from './components/RoutePlaza.svelte';
   import PublishToPlaza from './components/PublishToPlaza.svelte';
   import VersionHistoryModal from './components/VersionHistoryModal.svelte';
+  import RouteDetail from './components/RouteDetail.svelte';
 
   import {
     showRouteLibrary,
@@ -22,6 +23,7 @@
     showPlaza,
     showPublishPlaza,
     showVersionHistory,
+    showRouteDetail,
     toast,
     activeTool
   } from './stores/ui.store';
@@ -133,6 +135,7 @@
 
   <RoutePlaza />
   <PublishToPlaza />
+  <RouteDetail />
 
   <!-- ========== Toast 提示 ========== -->
   {#if $toast}
