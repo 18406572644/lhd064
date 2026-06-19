@@ -6,8 +6,9 @@
   import { formatDuration } from '@/utils/format';
   import type { MarkerData, RouteSegment, MarkerType } from '@/types';
   import { derived } from 'svelte/store';
+  import ElevationProfile from './ElevationProfile.svelte';
 
-  type TabType = 'marker' | 'segments';
+  type TabType = 'marker' | 'segments' | 'elevation';
 
   interface TabOption {
     id: TabType;
@@ -17,7 +18,8 @@
 
   const tabs: TabOption[] = [
     { id: 'marker', label: '标记详情', icon: '📝' },
-    { id: 'segments', label: '路线分段', icon: '🛣️' }
+    { id: 'segments', label: '路线分段', icon: '🛣️' },
+    { id: 'elevation', label: '海拔剖面', icon: '⛰️' }
   ];
 
   const markerTypeInfo: Record<MarkerType, { icon: string; label: string; color: string }> = {
@@ -938,7 +940,7 @@
           </div>
         </div>
       {/if}
-    {:else}
+    {:else if activeTab === 'segments'}
       {#if canShowSegments}
         <div class="segments-list">
           {#each $segments as seg, idx}
@@ -1000,6 +1002,8 @@
           </div>
         </div>
       {/if}
+    {:else if activeTab === 'elevation'}
+      <ElevationProfile markers={$currentRoute.markers} />
     {/if}
   </div>
 
