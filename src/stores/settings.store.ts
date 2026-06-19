@@ -16,7 +16,8 @@ const defaultAppSettings: AppSettings = {
   tileStyle: 'vintage',
   showCompass: true,
   mapRotation: 0,
-  language: 'zh-CN'
+  language: 'zh-CN',
+  mapMode: '2d'
 };
 
 function loadFromStorage<T>(key: string, defaultValue: T): T {

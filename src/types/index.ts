@@ -63,6 +63,28 @@ export interface AppSettings {
   showCompass: boolean;
   mapRotation: number;
   language: 'zh-CN';
+  mapMode: '2d' | '3d';
+}
+
+export interface FlightConfig {
+  altitude: number;
+  speed: number;
+  pitch: number;
+  slowdownFactor: number;
+  markerStayTime: number;
+}
+
+export interface FlightState {
+  isPlaying: boolean;
+  isPaused: boolean;
+  currentProgress: number;
+  totalDistance: number;
+  currentMarkerIndex: number;
+  currentPosition: { lat: number; lng: number; elevation: number } | null;
+  showInfoCard: boolean;
+  currentInfoCard: MarkerData | null;
+  isRecording: boolean;
+  exportFormat: 'video' | 'gif' | null;
 }
 
 export interface CachedTile {

@@ -3,6 +3,7 @@
   import TopNav from './components/TopNav.svelte';
   import ToolPanel from './components/ToolPanel.svelte';
   import MapView from './components/MapView.svelte';
+  import MapLibreView from './components/MapLibreView.svelte';
   import PropertyPanel from './components/PropertyPanel.svelte';
   import StatusBar from './components/StatusBar.svelte';
   import RouteLibrary from './components/RouteLibrary.svelte';
@@ -27,6 +28,7 @@
 
   import { startAutosave, stopAutosave, resetLastSavedHash } from './services/autosave.service';
   import { currentRoute } from './stores/route.store';
+  import { appSettings } from './stores/settings.store';
 
   import type { MarkerType } from './types';
 
@@ -68,7 +70,11 @@
 
     <!-- 中央地图区 -->
     <main class="map-area">
-      <MapView />
+      {#if $appSettings.mapMode === '2d'}
+        <MapView />
+      {:else}
+        <MapLibreView />
+      {/if}
 
       <!-- 工具提示（选择标记模式时） -->
       {#if $activeTool !== 'select' && $activeTool !== 'route'}

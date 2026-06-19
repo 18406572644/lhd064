@@ -96,6 +96,11 @@
     appSettings.update(s => ({ ...s, showCompass: !s.showCompass }));
   }
 
+  function switchMapMode(mode: '2d' | '3d') {
+    appSettings.update(s => ({ ...s, mapMode: mode }));
+    showToast(mode === '3d' ? '已切换到 3D 地形视图' : '已切换到 2D 标准视图', 'success');
+  }
+
   async function loadPresetRoute() {
     if (!selectedPresetId) {
       showToast('请先选择一条预设路线', 'error');
@@ -450,6 +455,70 @@
     }
   }
 
+  .map-mode-switch {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .mode-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 12px 8px;
+    border: 2px solid rgba(62, 44, 28, 0.25);
+    border-radius: 8px;
+    background: #FBF5E6;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    font-family: $font-body;
+
+    &:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(62, 44, 28, 0.15);
+      border-color: rgba(62, 44, 28, 0.4);
+      background: #FFF;
+    }
+
+    &.active {
+      border-color: $highway-blue;
+      background: linear-gradient(180deg, rgba(44, 95, 143, 0.08) 0%, rgba(44, 95, 143, 0.15) 100%);
+      box-shadow:
+        inset 0 1px 3px rgba(44, 95, 143, 0.1),
+        0 2px 8px rgba(44, 95, 143, 0.15);
+
+      .mode-label {
+        color: $highway-blue;
+        font-weight: 700;
+      }
+    }
+
+    .mode-icon {
+      font-size: 28px;
+      line-height: 1;
+    }
+
+    .mode-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: $deep-brown;
+    }
+  }
+
+  .mode-hint {
+    background: rgba(44, 95, 143, 0.06);
+    border: 1.5px solid rgba(44, 95, 143, 0.2);
+    border-radius: 6px;
+    padding: 8px 10px;
+    font-family: $font-body;
+    font-size: 11px;
+    color: rgba(44, 95, 143, 0.9);
+    line-height: 1.4;
+    margin-bottom: 4px;
+  }
+
   .toggle-row {
     display: flex;
     align-items: center;
@@ -635,6 +704,33 @@
           <span>撤销上一个标记</span>
         </button>
       </div>
+    </section>
+
+    <section class="section">
+      <div class="section-title">视图模式</div>
+      <div class="map-mode-switch">
+        <button
+          class="mode-btn {$appSettings.mapMode === '2d' ? 'active' : ''}"
+          on:click={() => switchMapMode('2d')}
+          title="2D 平面地图"
+        >
+          <span class="mode-icon">🗺️</span>
+          <span class="mode-label">2D 平面</span>
+        </button>
+        <button
+          class="mode-btn {$appSettings.mapMode === '3d' ? 'active' : ''}"
+          on:click={() => switchMapMode('3d')}
+          title="3D 地形地图 + 飞行模拟"
+        >
+          <span class="mode-icon">🏔️</span>
+          <span class="mode-label">3D 地形</span>
+        </button>
+      </div>
+      {#if $appSettings.mapMode === '3d'}
+        <div class="mode-hint">
+          <span>✨ 提示：3D 模式下可使用飞行模拟功能，沿路线自动飞行并录制视频</span>
+        </div>
+      {/if}
     </section>
 
     <section class="section">
